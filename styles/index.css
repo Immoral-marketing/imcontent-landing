@@ -1,0 +1,21 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Ensure root elements have non-static position for Motion scroll calculations */
+html,
+body {
+  position: relative;
+}
+
+/* Fix for ActiveCampaign form positioning */
+._form_14,
+._form_14 * {
+  position: static !important;
+}
+
+._form_14 {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
