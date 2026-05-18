@@ -1,5 +1,6 @@
 import Script from 'next/script'
 import { getVerticalConfig } from '@/lib/vertical'
+import './blog-globals.css'
 
 export default async function BlogLayout({
   children,

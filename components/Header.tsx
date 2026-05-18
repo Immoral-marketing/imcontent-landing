@@ -63,6 +63,13 @@ export function Header() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#9520ea] group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
+              href="/blog"
+              className="text-black hover:text-[#9520ea] transition-all duration-300 relative group"
+            >
+              Blog
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#9520ea] group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link
               href="/contacto"
               className="px-6 py-2.5 bg-[#9520ea] text-white hover:bg-black transition-all duration-300 rounded-full"
             >
@@ -103,6 +110,13 @@ export function Header() {
                 className="text-left text-black hover:text-[#9520ea] transition-colors"
               >
                 Servicios
+              </Link>
+              <Link
+                href="/blog"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-left text-black hover:text-[#9520ea] transition-colors"
+              >
+                Blog
               </Link>
               <Link
                 href="/contacto"
