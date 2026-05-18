@@ -1,8 +1,8 @@
 import { notFound }    from 'next/navigation'
 import { supabase }    from '@/lib/supabase'
-import ArticleHero     from '@Immoral-marketing/motor-blog/components/blog/ArticleHero'
-import ReadingProgress from '@Immoral-marketing/motor-blog/components/blog/ReadingProgress'
-import SubscribeCTA    from '@Immoral-marketing/motor-blog/components/blog/SubscribeCTA'
+import ArticleHero     from '@/components/blog/ArticleHero'
+import ReadingProgress from '@/components/blog/ReadingProgress'
+import SubscribeCTA    from '@/components/blog/SubscribeCTA'
 import { blogConfig }  from '@/lib/blog-config'
 import type { Metadata } from 'next'
 

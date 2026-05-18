@@ -1,7 +1,7 @@
 import { supabase }   from '@/lib/supabase'
-import BlogHero       from '@Immoral-marketing/motor-blog/components/blog/BlogHero'
-import BlogList       from '@Immoral-marketing/motor-blog/components/blog/BlogList'
-import SubscribeCTA   from '@Immoral-marketing/motor-blog/components/blog/SubscribeCTA'
+import BlogHero       from '@/components/blog/BlogHero'
+import BlogList       from '@/components/blog/BlogList'
+import SubscribeCTA   from '@/components/blog/SubscribeCTA'
 import { blogConfig } from '@/lib/blog-config'
 import type { Metadata } from 'next'
 

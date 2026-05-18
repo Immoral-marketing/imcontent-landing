@@ -1,5 +1,7 @@
 import Script from 'next/script'
 import { getVerticalConfig } from '@/lib/vertical'
+import { BlogConfigProvider } from '@Immoral-marketing/motor-blog/lib/BlogConfigContext'
+import { blogConfig } from '@/lib/blog-config'
 import './blog-globals.css'
 
 export default async function BlogLayout({
@@ -10,8 +12,9 @@ export default async function BlogLayout({
   const vertical = await getVerticalConfig()
 
   return (
-    <>
-      {children}
+    <BlogConfigProvider config={blogConfig}>
+      <>
+        {children}
 
       {/* GTM — capa blog */}
       {vertical?.google_tag_manager_id && (
@@ -56,6 +59,7 @@ export default async function BlogLayout({
           dangerouslySetInnerHTML={{ __html: vertical.custom_head_scripts }}
         />
       )}
-    </>
+      </>
+    </BlogConfigProvider>
   )
 }
