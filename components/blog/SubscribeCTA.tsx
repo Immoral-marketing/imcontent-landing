@@ -14,46 +14,50 @@ export default function SubscribeCTA({
 
   if (variant === 'compact') {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-50px' }}
-        transition={{ duration: 0.6 }}
-        className="relative overflow-hidden rounded-2xl shadow-sm p-8 md:p-10 mx-6 mb-16"
-        style={{
-          background: 'white',
-          border: '1px solid var(--blog-card-border)',
-        }}
-      >
-        <div
-          className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-30"
-          style={{ background: 'var(--blog-accent)' }}
-        />
-        <div className="relative">
-          <h3
-            className="text-2xl md:text-3xl mb-2 tracking-tight"
+      <div className="px-6 mb-16">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.6 }}
+            className="relative overflow-hidden rounded-2xl shadow-sm p-8 md:p-10"
             style={{
-              color: 'var(--blog-text)',
-              fontFamily: 'Lexend, sans-serif',
-              fontWeight: 900,
-              letterSpacing: '-0.02em',
+              background: 'white',
+              border: '1px solid var(--blog-card-border)',
             }}
           >
-            {cta.compact.title}
-          </h3>
-          <p
-            className="mb-6"
-            style={{
-              color: 'var(--blog-text-muted)',
-              fontFamily: 'Lexend, sans-serif',
-              fontWeight: 300,
-            }}
-          >
-            {cta.compact.description}
-          </p>
-          <SubscribeForm />
+            <div
+              className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-30"
+              style={{ background: 'var(--blog-accent)' }}
+            />
+            <div className="relative">
+              <h3
+                className="text-2xl md:text-3xl mb-2 tracking-tight"
+                style={{
+                  color: 'var(--blog-text)',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontWeight: 900,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {cta.compact.title}
+              </h3>
+              <p
+                className="mb-6"
+                style={{
+                  color: 'var(--blog-text-muted)',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontWeight: 300,
+                }}
+              >
+                {cta.compact.description}
+              </p>
+              <SubscribeForm />
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
