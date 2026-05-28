@@ -5,6 +5,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import Providers from "./providers";
+import { TrackingInjector } from "@Immoral-marketing/motor-blog";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${lexend.variable} antialiased min-h-screen bg-white relative`}>
+        <TrackingInjector verticalId={process.env.VERTICAL_ID} />
         <Providers>
           <Header />
           <main className="relative">
