@@ -1,11 +1,13 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import SearchBar from './SearchBar'
 import FeaturedArticle from './FeaturedArticle'
 import ArticleCard from './ArticleCard'
 import { motion } from 'motion/react'
 import Link from 'next/link'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import SubscribeCTA from './SubscribeCTA'
 
 type Articulo = {
   id:                string
@@ -19,6 +21,17 @@ type Articulo = {
 
 export default function BlogList({ articulos }: { articulos: Articulo[] }) {
   const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [mounted, setMounted] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+
+  const listRef = useRef<HTMLDivElement>(null)
+  const isMounted = useRef(false)
+
+  useEffect(() => {
+    setMounted(true)
+    setIsSubscribed(document.cookie.includes('newsletter_subscribed=true'))
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -32,6 +45,20 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  // Reset page to 1 on active search query change
+  useEffect(() => {
+    setPage(1)
+  }, [query])
+
+  // Scroll smoothly to list top when page changes
+  useEffect(() => {
+    if (isMounted.current) {
+      listRef.current?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      isMounted.current = true
+    }
+  }, [page])
+
   const trimmed    = query.trim().toLowerCase()
   const isSearching = trimmed.length > 0
 
@@ -44,10 +71,43 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
     })
   }, [articulos, trimmed, isSearching])
 
-  const [featured, ...rest] = articulos
+  const featured = articulos[0]
+  const rest = useMemo(() => articulos.slice(1), [articulos])
+
+  const totalPages = useMemo(() => {
+    if (isSearching) {
+      return Math.ceil(filtered.length / 9)
+    } else {
+      return Math.ceil(rest.length / 9)
+    }
+  }, [isSearching, filtered.length, rest.length])
+
+  const finalTotalPages = Math.max(1, totalPages)
+  const currentPage = Math.min(page, finalTotalPages)
+
+  const displayedArticles = useMemo(() => {
+    const startIdx = (currentPage - 1) * 9
+    const endIdx = startIdx + 9
+    if (isSearching) {
+      return filtered.slice(startIdx, endIdx)
+    } else {
+      return rest.slice(startIdx, endIdx)
+    }
+  }, [isSearching, filtered, rest, currentPage])
+
+  const showSubtleCTA = mounted && !isSubscribed && !isSearching
+
+  const paginationControls = totalPages > 1 ? (
+    <PaginationControls
+      currentPage={currentPage}
+      totalPages={totalPages}
+      onPageChange={setPage}
+    />
+  ) : null
 
   return (
-    <>
+    <div ref={listRef}>
+      {showSubtleCTA && <SubscribeCTA variant="subtle" />}
       <SearchBar
         value={query}
         onChange={setQuery}
@@ -56,26 +116,37 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
       />
       {!isSearching ? (
         <>
-          {featured && <FeaturedArticle articulo={featured} />}
-          {rest.length > 0 && (
-            <ArchiveSection articulos={rest} title="Más artículos" countLabel={rest.length} />
+          {currentPage === 1 && featured && <FeaturedArticle articulo={featured} />}
+          {displayedArticles.length > 0 && (
+            <ArchiveSection
+              articulos={displayedArticles}
+              title="Más artículos"
+              countLabel={rest.length}
+              pagination={paginationControls}
+            />
           )}
         </>
-      ) : filtered.length > 0 ? (
-        <ArchiveSection articulos={filtered} title="Resultados" countLabel={filtered.length} />
+      ) : displayedArticles.length > 0 ? (
+        <ArchiveSection
+          articulos={displayedArticles}
+          title="Resultados"
+          countLabel={filtered.length}
+          pagination={paginationControls}
+        />
       ) : (
         <NoResults query={query} onClear={() => setQuery('')} />
       )}
-    </>
+    </div>
   )
 }
 
 function ArchiveSection({
-  articulos, title, countLabel
+  articulos, title, countLabel, pagination
 }: {
   articulos:   Articulo[]
   title:       string
   countLabel:  number
+  pagination?: React.ReactNode
 }) {
   return (
     <section className="px-6 mb-32">
@@ -105,8 +176,60 @@ function ArchiveSection({
             <ArticleCard key={articulo.id} articulo={articulo} index={i} />
           ))}
         </div>
+        {pagination}
       </div>
     </section>
+  )
+}
+
+function PaginationControls({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number
+  totalPages: number
+  onPageChange: (page: number) => void
+}) {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+
+  return (
+    <div className="flex items-center justify-center gap-2 mt-16" style={{ fontFamily: 'Lexend, sans-serif' }}>
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="w-10 h-10 rounded-xl flex items-center justify-center border border-black/10 hover:border-black/20 text-slate-700 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer bg-white"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => onPageChange(p)}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-medium transition-all duration-200 cursor-pointer ${
+            currentPage === p
+              ? 'shadow-sm font-bold'
+              : 'border border-black/10 hover:border-black/20 text-slate-700 hover:text-slate-900 bg-white'
+          }`}
+          style={
+            currentPage === p
+              ? { background: 'var(--blog-accent-glow)', color: 'black', fontWeight: 700 }
+              : undefined
+          }
+        >
+          {p}
+        </button>
+      ))}
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="w-10 h-10 rounded-xl flex items-center justify-center border border-black/10 hover:border-black/20 text-slate-700 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer bg-white"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    </div>
   )
 }
 

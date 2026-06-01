@@ -19,7 +19,7 @@ export async function GET() {
     .eq('vertical_id', verticalId)
     .eq('estado', 'publicado')
     .eq('noindex', false)
-    .order('fecha_publicacion', { ascending: false })
+    .order('fecha_publicacion', { ascending: false, nullsFirst: false })
     .limit(50)
 
   const articulosList = (articulos || [])

@@ -3,6 +3,7 @@ import { getVerticalConfig } from '@/lib/vertical'
 import { BlogConfigProvider } from '@Immoral-marketing/motor-blog/lib/BlogConfigContext'
 import { blogConfig } from '@/lib/blog-config'
 import './blog-globals.css'
+import SubscribePopup from '@/components/blog/SubscribePopup'
 
 export default async function BlogLayout({
   children,
@@ -15,6 +16,7 @@ export default async function BlogLayout({
     <BlogConfigProvider config={blogConfig}>
       <div className="blog-shell">
         {children}
+        <SubscribePopup />
 
       {/* GTM — capa blog */}
       {vertical?.google_tag_manager_id && (

@@ -21,7 +21,7 @@ async function getArticulos() {
     .eq('vertical_id', process.env.VERTICAL_ID!)
     .eq('estado', 'publicado')
     .eq('noindex', false)
-    .order('fecha_publicacion', { ascending: false })
+    .order('fecha_publicacion', { ascending: false, nullsFirst: false })
     .limit(20)
   return data || []
 }

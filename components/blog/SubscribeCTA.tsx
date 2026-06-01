@@ -8,9 +8,57 @@ import { useBlogConfig } from '@Immoral-marketing/motor-blog/lib/BlogConfigConte
 export default function SubscribeCTA({
   variant = 'large'
 }: {
-  variant?: 'large' | 'compact'
+  variant?: 'large' | 'compact' | 'subtle'
 }) {
   const { cta } = useBlogConfig()
+
+  if (variant === 'subtle') {
+    return (
+      <div className="w-full max-w-3xl mx-auto px-6 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6"
+          style={{
+            background: 'white',
+            border: '1px solid var(--blog-card-border)',
+          }}
+        >
+          <div
+            className="absolute -top-10 -right-10 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-20"
+            style={{ background: 'var(--blog-accent)' }}
+          />
+          <div className="relative z-10 flex-1">
+            <h3
+              className="text-lg md:text-xl tracking-tight mb-1"
+              style={{
+                color: 'var(--blog-text)',
+                fontFamily: 'Lexend, sans-serif',
+                fontWeight: 900,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              {cta.compact?.title || 'Contenido que convierte. Creado con IA.'}
+            </h3>
+            <p
+              className="text-xs md:text-sm"
+              style={{
+                color: 'var(--blog-text-muted)',
+                fontFamily: 'Lexend, sans-serif',
+                fontWeight: 300,
+              }}
+            >
+              {cta.compact?.description || 'Descubre cómo imcontent puede ayudarte.'}
+            </p>
+          </div>
+          <div className="relative z-10 w-full md:w-auto md:min-w-[320px]">
+            <SubscribeForm />
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
 
   if (variant === 'compact') {
     return (

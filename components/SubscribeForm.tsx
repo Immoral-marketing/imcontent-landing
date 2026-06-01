@@ -15,7 +15,12 @@ export default function SubscribeForm() {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email }),
     })
-    setEstado(response.ok ? 'ok' : 'error')
+    if (response.ok) {
+      document.cookie = "newsletter_subscribed=true; path=/; max-age=31536000; SameSite=Lax";
+      setEstado('ok')
+    } else {
+      setEstado('error')
+    }
   }
 
   if (estado === 'ok') {
