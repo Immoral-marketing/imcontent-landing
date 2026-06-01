@@ -18,6 +18,15 @@ type Articulo = {
   fecha_publicacion: string | null
 }
 
+// Function to calculate symmetric article counts to keep grid rows fully populated
+function getSymmetricCount(rawCount: number) {
+  if (rawCount <= 2) return rawCount
+  if (rawCount === 3 || rawCount === 4) return 2
+  if (rawCount === 5) return 5
+  if (rawCount === 6 || rawCount === 7) return 5
+  return 8
+}
+
 export default function BlogList({ articulos }: { articulos: Articulo[] }) {
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
@@ -135,17 +144,14 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
   // Filtered list based on search and selected filters
   const filtered = useMemo(() => {
     return articulos.filter(a => {
-      // 1. Text Search Filter
       if (isSearching) {
         const haystack = [a.titular, a.meta_description, a.categoria]
           .filter(Boolean).join(' ').toLowerCase()
         if (!haystack.includes(trimmed)) return false
       }
 
-      // 2. Category Filter
       if (selectedCategory && a.categoria !== selectedCategory) return false
 
-      // 3. Month/Year Filter
       if (selectedMonthKey) {
         if (!a.fecha_publicacion) return false
         const date = new Date(a.fecha_publicacion)
@@ -154,7 +160,6 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
         const month = date.getMonth() + 1
         if (`${year}-${month}` !== selectedMonthKey) return false
 
-        // 4. Day Filter (nested under month)
         if (selectedDay) {
           const day = date.getDate()
           if (day !== selectedDay) return false
@@ -168,27 +173,37 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
   const featured = articulos[0]
   const rest = useMemo(() => articulos.slice(1), [articulos])
 
-  // Pagination bounds
-  const totalPages = useMemo(() => {
-    if (hasActiveFilters) {
-      return Math.ceil(filtered.length / 9)
-    } else {
-      return Math.ceil(rest.length / 9)
+  // Dynamic symmetric pagination index builder to prevent layout trailing gaps
+  const pagesIndices = useMemo(() => {
+    const indices: { start: number; end: number }[] = []
+    let currentStart = 0
+    const total = hasActiveFilters ? filtered.length : rest.length
+
+    while (currentStart < total) {
+      const remaining = total - currentStart
+      const rawCount = Math.min(8, remaining)
+      let count = rawCount
+
+      if (remaining <= 8) {
+        count = getSymmetricCount(rawCount)
+      }
+
+      if (count <= 0) break
+      indices.push({ start: currentStart, end: currentStart + count })
+      currentStart += count
     }
+    return indices
   }, [hasActiveFilters, filtered.length, rest.length])
 
-  const finalTotalPages = Math.max(1, totalPages)
-  const currentPage = Math.min(page, finalTotalPages)
+  const totalPages = Math.max(1, pagesIndices.length)
+  const currentPage = Math.min(page, totalPages)
+  const pageRange = pagesIndices[currentPage - 1]
 
   const displayedArticles = useMemo(() => {
-    const startIdx = (currentPage - 1) * 9
-    const endIdx = startIdx + 9
-    if (hasActiveFilters) {
-      return filtered.slice(startIdx, endIdx)
-    } else {
-      return rest.slice(startIdx, endIdx)
-    }
-  }, [hasActiveFilters, filtered, rest, currentPage])
+    if (!pageRange) return []
+    const articlesList = hasActiveFilters ? filtered : rest
+    return articlesList.slice(pageRange.start, pageRange.end)
+  }, [pageRange, hasActiveFilters, filtered, rest])
 
   const showSubtleCTA = mounted && !isSubscribed && !hasActiveFilters
 
@@ -199,6 +214,8 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
       onPageChange={setPage}
     />
   ) : null
+
+  const itemsCountLabel = hasActiveFilters ? filtered.length : rest.length
 
   return (
     <div ref={listRef}>
@@ -215,27 +232,35 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
         <FeaturedArticle articulo={featured} />
       )}
 
-      {/* Grid containing Archive Section and Filters Sidebar */}
+      {/* Unified CSS Grid section */}
       <section className="px-6 mb-32">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 items-start">
             
-            {/* Left column (75%): Archive grid list */}
-            <div className="lg:col-span-9 order-2 lg:order-1">
-              {displayedArticles.length > 0 ? (
-                <ArchiveSection
-                  articulos={displayedArticles}
-                  title={hasActiveFilters ? "Resultados" : "Más artículos"}
-                  countLabel={hasActiveFilters ? filtered.length : rest.length}
-                  pagination={paginationControls}
-                />
-              ) : (
-                <NoResults query={query} onClear={clearAllFilters} />
-              )}
+            {/* Header (Spans all columns) */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 flex items-end justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: 'var(--blog-accent-blue)' }} />
+                  <span className="text-xs tracking-[0.25em] text-black/50 uppercase"
+                        style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 300 }}>
+                    Archivo
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-4xl text-black tracking-tight"
+                    style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 100, letterSpacing: '-0.025em' }}>
+                  {hasActiveFilters ? "Resultados" : "Más artículos"}
+                </h2>
+              </div>
+              <span className="hidden md:block text-sm text-black/40"
+                    style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 300 }}>
+                {itemsCountLabel} {itemsCountLabel === 1 ? 'pieza' : 'piezas'}
+              </span>
             </div>
 
-            {/* Right column (25%): Filters sidebar */}
-            <aside className="lg:col-span-3 order-1 lg:order-2 space-y-6 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/80 shadow-sm">
+            {/* Filters Sidebar (Placed at Col 3, Row 2 on desktop) */}
+            <aside className="col-span-1 md:col-span-2 lg:col-span-1 lg:col-start-3 lg:row-start-2 order-1 lg:order-none space-y-6 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/80 shadow-sm mb-6 lg:mb-0">
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="font-bold text-slate-900 dark:text-white" style={{ fontFamily: 'Lexend, sans-serif' }}>
                   Filtros
@@ -333,51 +358,31 @@ export default function BlogList({ articulos }: { articulos: Articulo[] }) {
 
                 </div>
               </div>
-
             </aside>
+
+            {/* Articles flow (automatic placement covers row filling beneath the sidebar) */}
+            {displayedArticles.length > 0 ? (
+              displayedArticles.map((articulo, i) => (
+                <div key={articulo.id} className="order-2 lg:order-none">
+                  <ArticleCard articulo={articulo} index={i} />
+                </div>
+              ))
+            ) : (
+              <div className="col-span-1 md:col-span-2 lg:col-span-2 order-2 lg:order-none">
+                <NoResults query={query} onClear={clearAllFilters} />
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {paginationControls && (
+              <div className="col-span-1 md:col-span-2 lg:col-span-3 order-3 lg:order-none">
+                {paginationControls}
+              </div>
+            )}
+
           </div>
         </div>
       </section>
-    </div>
-  )
-}
-
-function ArchiveSection({
-  articulos, title, countLabel, pagination
-}: {
-  articulos:   Articulo[]
-  title:       string
-  countLabel:  number
-  pagination?: React.ReactNode
-}) {
-  return (
-    <div>
-      <div className="flex items-end justify-between mb-10">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: 'var(--blog-accent-blue)' }} />
-            <span className="text-xs tracking-[0.25em] text-black/50 uppercase"
-                  style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 300 }}>
-              Archivo
-            </span>
-          </div>
-          <h2 className="text-3xl md:text-4xl text-black tracking-tight"
-              style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 100, letterSpacing: '-0.025em' }}>
-            {title}
-          </h2>
-        </div>
-        <span className="hidden md:block text-sm text-black/40"
-              style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 300 }}>
-          {countLabel} {countLabel === 1 ? 'pieza' : 'piezas'}
-        </span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-        {articulos.map((articulo, i) => (
-          <ArticleCard key={articulo.id} articulo={articulo} index={i} />
-        ))}
-      </div>
-      {pagination}
     </div>
   )
 }
